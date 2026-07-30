@@ -1,0 +1,53 @@
+services:
+  api:
+    build: { context: ., dockerfile: docker/api.Dockerfile }
+    ports: ["8080:8080"]
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Postgres: Host=postgres;Database=knowledgehub;Username=knowledgehub;Password=knowledgehub_dev
+      Ollama__BaseUrl: http://ollama:11434
+      Qdrant__BaseUrl: http://qdrant:6333
+      RabbitMQ__Host: rabbitmq
+      Redis__ConnectionString: redis:6379,abortConnect=false
+      Storage__Root: /data
+    volumes: ["documents:/data"]
+    depends_on: [postgres, rabbitmq, qdrant, ollama]
+  worker:
+    build: { context: ., dockerfile: docker/worker.Dockerfile }
+    environment:
+      ConnectionStrings__Postgres: Host=postgres;Database=knowledgehub;Username=knowledgehub;Password=knowledgehub_dev
+      Ollama__BaseUrl: http://ollama:11434
+      Qdrant__BaseUrl: http://qdrant:6333
+      RabbitMQ__Host: rabbitmq
+      Redis__ConnectionString: redis:6379,abortConnect=false
+      Storage__Root: /data
+    volumes: ["documents:/data"]
+    depends_on: [postgres, rabbitmq, qdrant, ollama]
+  postgres:
+    image: postgres:18-alpine
+    environment: { POSTGRES_DB: knowledgehub, POSTGRES_USER: knowledgehub, POSTGRES_PASSWORD: knowledgehub_dev }
+    ports: ["5432:5432"]
+    volumes: ["postgres:/var/lib/postgresql/data"]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U knowledgehub"], interval: 5s, timeout: 5s, retries: 20 }
+  redis:
+    image: redis:8-alpine
+    ports: ["6379:6379"]
+    volumes: ["redis:/data"]
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    ports: ["5672:5672", "15672:15672"]
+    volumes: ["rabbitmq:/var/lib/rabbitmq"]
+  qdrant:
+    image: qdrant/qdrant:v1.15.4
+    ports: ["6333:6333", "6334:6334"]
+    volumes: ["qdrant:/qdrant/storage"]
+  ollama:
+    image: ollama/ollama:latest
+    ports: ["11434:11434"]
+    volumes: ["ollama:/root/.ollama"]
+  otel-collector:
+    image: otel/opentelemetry-collector:0.132.0
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes: ["./docker/otel-collector.yaml:/etc/otelcol/config.yaml:ro"]
+    ports: ["4317:4317"]
+volumes: { documents: {}, postgres: {}, redis: {}, rabbitmq: {}, qdrant: {}, ollama: {} }
