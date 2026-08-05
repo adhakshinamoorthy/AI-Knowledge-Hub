@@ -1,0 +1,23 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+          cache: true
+          cache-dependency-path: '**/*.csproj'
+      - run: dotnet restore AIKnowledgeHub.slnx -p:NuGetAudit=true -p:TreatWarningsAsErrors=true
+      - run: dotnet build AIKnowledgeHub.slnx -c Release --no-restore --warnaserror
+      - run: dotnet test AIKnowledgeHub.slnx -c Release --no-build
+      - run: docker compose config --quiet
+
