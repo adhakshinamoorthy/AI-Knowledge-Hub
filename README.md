@@ -1,5 +1,9 @@
 # AI Knowledge Hub
 
+[![CI](https://github.com/adhakshinamoorthy/AI-Knowledge-Hub/actions/workflows/ci.yml/badge.svg)](https://github.com/adhakshinamoorthy/AI-Knowledge-Hub/actions/workflows/ci.yml)
+
+Engineering records: [architecture](docs/architecture.md), [asynchronous ingestion ADR](docs/adr/0001-asynchronous-ingestion.md), [verification](docs/verification.md), [security](SECURITY.md), and [contributing](CONTRIBUTING.md).
+
 Local-first Retrieval-Augmented Generation (RAG) on .NET 10. Upload documents, process them asynchronously, store embeddings in Qdrant, search tenant-scoped knowledge, and stream grounded answers from Ollama with source citations.
 
 ## Architecture
